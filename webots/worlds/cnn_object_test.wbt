@@ -1,0 +1,223 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/animals/protos/Dog.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/animals/protos/Cat.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/animals/protos/Horse.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/animals/protos/Deer.proto"
+
+WorldInfo {
+  info [
+    "CNN camera test: miniature CIFAR-10 objects (dog, cat, horse, deer, airplane) inside a walled 3 m x 3 m arena."
+    "Four 8 cm coloured blocks (red, green, blue, yellow) share the arena. Every run the epuck_controller (tour mode)"
+    "shuffles everything, then the e-puck drives to each object: it photographs the CIFAR objects for the CNN"
+    "and identifies each block colour with HSV thresholding."
+  ]
+  title "CNN Object Test"
+  basicTimeStep 32
+}
+Viewpoint {
+  orientation -0.3205 0.3205 0.8913 1.6856
+  position 0 -3.3 2.75
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 3 3
+  floorTileSize 0.5 0.5
+  wallHeight 0.1
+}
+DEF DOG Dog {
+  translation 0.95 0.35 0
+  rotation 0 0 1 1.2
+  scale 0.3
+  name "dog"
+}
+DEF CAT Cat {
+  translation -0.25 0.85 0
+  rotation 0 0 1 3.6
+  scale 0.6
+  name "cat"
+}
+DEF HORSE Horse {
+  translation -1.05 -0.2 0
+  rotation 0 0 1 0.4
+  scale 0.14
+  name "horse"
+}
+DEF DEER Deer {
+  translation -0.3 -0.95 0
+  rotation 0 0 1 2.2
+  scale 0.14
+  name "deer"
+}
+DEF AIRPLANE Solid {
+  translation 0.7 -0.75 0
+  rotation 0 0 1 5.3
+  children [
+    Transform {
+      scale 0.7 0.7 0.7
+      children [
+        DEF FUSELAGE Pose {
+          translation 0 0 0.08
+          rotation 0 1 0 1.5708
+          children [
+            Shape {
+              appearance DEF PLANE_WHITE PBRAppearance { baseColor 0.93 0.93 0.95 roughness 0.35 metalness 0 }
+              geometry Cylinder { height 0.36 radius 0.025 }
+            }
+          ]
+        }
+        Pose {
+          translation 0.205 0 0.08
+          rotation 0 1 0 1.5708
+          children [ Shape { appearance USE PLANE_WHITE geometry Cone { bottomRadius 0.025 height 0.05 } } ]
+        }
+        Pose {
+          translation -0.21 0 0.085
+          rotation 0 1 0 -1.5708
+          children [ Shape { appearance USE PLANE_WHITE geometry Cone { bottomRadius 0.025 height 0.06 } } ]
+        }
+        Pose {
+          translation 0.15 0 0.098
+          children [
+            Shape {
+              appearance PBRAppearance { baseColor 0.1 0.15 0.3 roughness 0.2 metalness 0 }
+              geometry Box { size 0.05 0.036 0.018 }
+            }
+          ]
+        }
+        Pose {
+          translation 0.02 0 0.075
+          children [ Shape { appearance USE PLANE_WHITE geometry Box { size 0.1 0.46 0.008 } } ]
+        }
+        Pose {
+          translation -0.19 0 0.088
+          children [ Shape { appearance USE PLANE_WHITE geometry Box { size 0.06 0.18 0.006 } } ]
+        }
+        Pose {
+          translation -0.2 0 0.13
+          children [
+            Shape {
+              appearance PBRAppearance { baseColor 0.1 0.3 0.8 roughness 0.4 metalness 0 }
+              geometry Box { size 0.07 0.006 0.08 }
+            }
+          ]
+        }
+        Pose {
+          translation 0.045 0.12 0.062
+          rotation 0 1 0 1.5708
+          children [
+            Shape {
+              appearance DEF PLANE_GREY PBRAppearance { baseColor 0.55 0.57 0.6 roughness 0.4 metalness 0.3 }
+              geometry DEF ENGINE Cylinder { height 0.06 radius 0.013 }
+            }
+          ]
+        }
+        Pose {
+          translation 0.045 -0.12 0.062
+          rotation 0 1 0 1.5708
+          children [ Shape { appearance USE PLANE_GREY geometry USE ENGINE } ]
+        }
+        Pose {
+          translation 0.13 0 0.03
+          children [ Shape { appearance USE PLANE_GREY geometry DEF STRUT Cylinder { height 0.06 radius 0.004 } } ]
+        }
+        Pose {
+          translation -0.01 0.05 0.03
+          children [ Shape { appearance USE PLANE_GREY geometry USE STRUT } ]
+        }
+        Pose {
+          translation -0.01 -0.05 0.03
+          children [ Shape { appearance USE PLANE_GREY geometry USE STRUT } ]
+        }
+        Pose {
+          translation 0.13 0 0.012
+          rotation 1 0 0 1.5708
+          children [
+            Shape {
+              appearance DEF TYRE_BLACK PBRAppearance { baseColor 0.05 0.05 0.05 roughness 1 metalness 0 }
+              geometry DEF PLANE_WHEEL Cylinder { height 0.01 radius 0.012 }
+            }
+          ]
+        }
+        Pose {
+          translation -0.01 0.05 0.012
+          rotation 1 0 0 1.5708
+          children [ Shape { appearance USE TYRE_BLACK geometry USE PLANE_WHEEL } ]
+        }
+        Pose {
+          translation -0.01 -0.05 0.012
+          rotation 1 0 0 1.5708
+          children [ Shape { appearance USE TYRE_BLACK geometry USE PLANE_WHEEL } ]
+        }
+      ]
+    }
+  ]
+  name "miniature airplane"
+  boundingObject Pose {
+    translation 0 0 0.063
+    children [ Box { size 0.32 0.32 0.12 } ]
+  }
+}
+DEF BLOCK_RED Solid {
+  translation 0.6 0.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 1 0 0 roughness 1 metalness 0 }
+      geometry DEF BLOCK_RED_BOX Box { size 0.08 0.08 0.08 }
+    }
+  ]
+  name "red block"
+  boundingObject USE BLOCK_RED_BOX
+}
+DEF BLOCK_GREEN Solid {
+  translation -0.9 0.7 0.04
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0 0.8 0 roughness 1 metalness 0 }
+      geometry DEF BLOCK_GREEN_BOX Box { size 0.08 0.08 0.08 }
+    }
+  ]
+  name "green block"
+  boundingObject USE BLOCK_GREEN_BOX
+}
+DEF BLOCK_BLUE Solid {
+  translation 0.95 -0.35 0.04
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0 0.2 1 roughness 1 metalness 0 }
+      geometry DEF BLOCK_BLUE_BOX Box { size 0.08 0.08 0.08 }
+    }
+  ]
+  name "blue block"
+  boundingObject USE BLOCK_BLUE_BOX
+}
+DEF BLOCK_YELLOW Solid {
+  translation -0.7 -0.75 0.04
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 1 0.9 0 roughness 1 metalness 0 }
+      geometry DEF BLOCK_YELLOW_BOX Box { size 0.08 0.08 0.08 }
+    }
+  ]
+  name "yellow block"
+  boundingObject USE BLOCK_YELLOW_BOX
+}
+E-puck {
+  translation 0 0 0
+  controller "epuck_controller"
+  controllerArgs [ "tour" ]
+  supervisor TRUE
+  camera_width 320
+  camera_height 240
+  turretSlot [
+    InertialUnit {
+    }
+  ]
+}
