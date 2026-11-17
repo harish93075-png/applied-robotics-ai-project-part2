@@ -1,0 +1,739 @@
+{
+  "baseline_sgd": {
+    "test_accuracy": 0.6155,
+    "test_loss": 1.1022,
+    "params": 122570,
+    "epochs": 10,
+    "train_minutes": 1.3,
+    "best_val_accuracy": 0.6155
+  },
+  "baseline_adam": {
+    "test_accuracy": 0.6968,
+    "test_loss": 0.9587,
+    "params": 122570,
+    "epochs": 10,
+    "train_minutes": 1.2,
+    "best_val_accuracy": 0.7014
+  },
+  "improved_adam": {
+    "test_accuracy": 0.8452,
+    "test_loss": 0.4735,
+    "params": 323946,
+    "epochs": 37,
+    "train_minutes": 10.1,
+    "best_val_accuracy": 0.8452
+  },
+  "per_class_accuracy": {
+    "airplane": 0.892,
+    "automobile": 0.948,
+    "bird": 0.783,
+    "cat": 0.652,
+    "deer": 0.826,
+    "dog": 0.728,
+    "frog": 0.931,
+    "horse": 0.876,
+    "ship": 0.875,
+    "truck": 0.941
+  },
+  "most_confused": [
+    "dog",
+    "cat",
+    107
+  ],
+  "own_image_predictions": [
+    {
+      "image": "my_car.jpg",
+      "top3": [
+        [
+          "airplane",
+          0.412
+        ],
+        [
+          "frog",
+          0.382
+        ],
+        [
+          "bird",
+          0.058
+        ]
+      ]
+    },
+    {
+      "image": "my_cat.jpg",
+      "top3": [
+        [
+          "automobile",
+          0.411
+        ],
+        [
+          "truck",
+          0.348
+        ],
+        [
+          "cat",
+          0.121
+        ]
+      ]
+    },
+    {
+      "image": "my_dog.jpg",
+      "top3": [
+        [
+          "dog",
+          0.863
+        ],
+        [
+          "cat",
+          0.136
+        ],
+        [
+          "deer",
+          0.001
+        ]
+      ]
+    },
+    {
+      "image": "my_ship.jpg",
+      "top3": [
+        [
+          "airplane",
+          0.933
+        ],
+        [
+          "ship",
+          0.063
+        ],
+        [
+          "truck",
+          0.004
+        ]
+      ]
+    }
+  ],
+  "webots_predictions": [
+    {
+      "image": "epuck_airplane.png",
+      "top3": [
+        [
+          "airplane",
+          0.999
+        ],
+        [
+          "ship",
+          0.001
+        ],
+        [
+          "truck",
+          0.0
+        ]
+      ]
+    },
+    {
+      "image": "epuck_cat.png",
+      "top3": [
+        [
+          "airplane",
+          0.83
+        ],
+        [
+          "bird",
+          0.142
+        ],
+        [
+          "ship",
+          0.021
+        ]
+      ]
+    },
+    {
+      "image": "epuck_deer.png",
+      "top3": [
+        [
+          "airplane",
+          0.995
+        ],
+        [
+          "bird",
+          0.004
+        ],
+        [
+          "ship",
+          0.001
+        ]
+      ]
+    },
+    {
+      "image": "epuck_dog.png",
+      "top3": [
+        [
+          "airplane",
+          0.95
+        ],
+        [
+          "bird",
+          0.044
+        ],
+        [
+          "ship",
+          0.004
+        ]
+      ]
+    },
+    {
+      "image": "epuck_horse.png",
+      "top3": [
+        [
+          "airplane",
+          0.93
+        ],
+        [
+          "truck",
+          0.029
+        ],
+        [
+          "ship",
+          0.021
+        ]
+      ]
+    }
+  ],
+  "resnet9": {
+    "test_accuracy": 0.9308,
+    "test_accuracy_tta": 0.9349,
+    "params": 6577610,
+    "epochs": 30,
+    "train_minutes": 5.8,
+    "best_val_accuracy": 0.9308
+  },
+  "per_class_accuracy_resnet9": {
+    "airplane": 0.95,
+    "automobile": 0.975,
+    "bird": 0.904,
+    "cat": 0.843,
+    "deer": 0.935,
+    "dog": 0.908,
+    "frog": 0.96,
+    "horse": 0.95,
+    "ship": 0.963,
+    "truck": 0.961
+  },
+  "most_confused_resnet9": [
+    "cat",
+    "dog",
+    84
+  ],
+  "predictions_resnet9": {
+    "own_raw": [
+      {
+        "image": "my_car.jpg",
+        "top3": [
+          [
+            "ship",
+            0.378
+          ],
+          [
+            "automobile",
+            0.369
+          ],
+          [
+            "airplane",
+            0.129
+          ]
+        ]
+      },
+      {
+        "image": "my_cat.jpg",
+        "top3": [
+          [
+            "cat",
+            0.937
+          ],
+          [
+            "dog",
+            0.016
+          ],
+          [
+            "automobile",
+            0.009
+          ]
+        ]
+      },
+      {
+        "image": "my_dog.jpg",
+        "top3": [
+          [
+            "dog",
+            0.898
+          ],
+          [
+            "automobile",
+            0.015
+          ],
+          [
+            "horse",
+            0.014
+          ]
+        ]
+      },
+      {
+        "image": "my_ship.jpg",
+        "top3": [
+          [
+            "ship",
+            0.916
+          ],
+          [
+            "cat",
+            0.015
+          ],
+          [
+            "frog",
+            0.013
+          ]
+        ]
+      }
+    ],
+    "own_crop": [
+      {
+        "image": "my_car.jpg",
+        "top3": [
+          [
+            "automobile",
+            0.916
+          ],
+          [
+            "bird",
+            0.019
+          ],
+          [
+            "deer",
+            0.015
+          ]
+        ]
+      },
+      {
+        "image": "my_cat.jpg",
+        "top3": [
+          [
+            "cat",
+            0.861
+          ],
+          [
+            "dog",
+            0.053
+          ],
+          [
+            "frog",
+            0.019
+          ]
+        ]
+      },
+      {
+        "image": "my_dog.jpg",
+        "top3": [
+          [
+            "dog",
+            0.904
+          ],
+          [
+            "automobile",
+            0.016
+          ],
+          [
+            "truck",
+            0.015
+          ]
+        ]
+      },
+      {
+        "image": "my_ship.jpg",
+        "top3": [
+          [
+            "ship",
+            0.916
+          ],
+          [
+            "cat",
+            0.015
+          ],
+          [
+            "frog",
+            0.013
+          ]
+        ]
+      }
+    ],
+    "webots_raw": [
+      {
+        "image": "epuck_airplane.png",
+        "top3": [
+          [
+            "airplane",
+            0.89
+          ],
+          [
+            "truck",
+            0.025
+          ],
+          [
+            "deer",
+            0.017
+          ]
+        ]
+      },
+      {
+        "image": "epuck_cat.png",
+        "top3": [
+          [
+            "airplane",
+            0.478
+          ],
+          [
+            "bird",
+            0.199
+          ],
+          [
+            "horse",
+            0.119
+          ]
+        ]
+      },
+      {
+        "image": "epuck_deer.png",
+        "top3": [
+          [
+            "airplane",
+            0.669
+          ],
+          [
+            "deer",
+            0.208
+          ],
+          [
+            "horse",
+            0.026
+          ]
+        ]
+      },
+      {
+        "image": "epuck_dog.png",
+        "top3": [
+          [
+            "horse",
+            0.408
+          ],
+          [
+            "airplane",
+            0.151
+          ],
+          [
+            "deer",
+            0.143
+          ]
+        ]
+      },
+      {
+        "image": "epuck_horse.png",
+        "top3": [
+          [
+            "horse",
+            0.309
+          ],
+          [
+            "deer",
+            0.199
+          ],
+          [
+            "airplane",
+            0.142
+          ]
+        ]
+      }
+    ],
+    "webots_crop": [
+      {
+        "image": "epuck_airplane.png",
+        "top3": [
+          [
+            "airplane",
+            0.944
+          ],
+          [
+            "truck",
+            0.013
+          ],
+          [
+            "horse",
+            0.007
+          ]
+        ]
+      },
+      {
+        "image": "epuck_cat.png",
+        "top3": [
+          [
+            "dog",
+            0.512
+          ],
+          [
+            "horse",
+            0.264
+          ],
+          [
+            "truck",
+            0.058
+          ]
+        ]
+      },
+      {
+        "image": "epuck_deer.png",
+        "top3": [
+          [
+            "deer",
+            0.439
+          ],
+          [
+            "horse",
+            0.306
+          ],
+          [
+            "dog",
+            0.046
+          ]
+        ]
+      },
+      {
+        "image": "epuck_dog.png",
+        "top3": [
+          [
+            "bird",
+            0.396
+          ],
+          [
+            "horse",
+            0.291
+          ],
+          [
+            "ship",
+            0.057
+          ]
+        ]
+      },
+      {
+        "image": "epuck_horse.png",
+        "top3": [
+          [
+            "horse",
+            0.432
+          ],
+          [
+            "truck",
+            0.161
+          ],
+          [
+            "ship",
+            0.104
+          ]
+        ]
+      }
+    ]
+  },
+  "predictions_improved_crop": {
+    "own_crop": [
+      {
+        "image": "my_car.jpg",
+        "top3": [
+          [
+            "automobile",
+            0.998
+          ],
+          [
+            "truck",
+            0.002
+          ],
+          [
+            "frog",
+            0.0
+          ]
+        ]
+      },
+      {
+        "image": "my_cat.jpg",
+        "top3": [
+          [
+            "cat",
+            0.363
+          ],
+          [
+            "dog",
+            0.361
+          ],
+          [
+            "horse",
+            0.067
+          ]
+        ]
+      },
+      {
+        "image": "my_dog.jpg",
+        "top3": [
+          [
+            "dog",
+            0.999
+          ],
+          [
+            "bird",
+            0.001
+          ],
+          [
+            "cat",
+            0.0
+          ]
+        ]
+      },
+      {
+        "image": "my_ship.jpg",
+        "top3": [
+          [
+            "ship",
+            0.991
+          ],
+          [
+            "airplane",
+            0.007
+          ],
+          [
+            "truck",
+            0.001
+          ]
+        ]
+      }
+    ],
+    "webots_crop": [
+      {
+        "image": "epuck_airplane.png",
+        "top3": [
+          [
+            "airplane",
+            1.0
+          ],
+          [
+            "truck",
+            0.0
+          ],
+          [
+            "automobile",
+            0.0
+          ]
+        ]
+      },
+      {
+        "image": "epuck_cat.png",
+        "top3": [
+          [
+            "horse",
+            0.784
+          ],
+          [
+            "deer",
+            0.089
+          ],
+          [
+            "dog",
+            0.067
+          ]
+        ]
+      },
+      {
+        "image": "epuck_deer.png",
+        "top3": [
+          [
+            "deer",
+            0.478
+          ],
+          [
+            "horse",
+            0.462
+          ],
+          [
+            "airplane",
+            0.046
+          ]
+        ]
+      },
+      {
+        "image": "epuck_dog.png",
+        "top3": [
+          [
+            "bird",
+            0.224
+          ],
+          [
+            "airplane",
+            0.21
+          ],
+          [
+            "horse",
+            0.186
+          ]
+        ]
+      },
+      {
+        "image": "epuck_horse.png",
+        "top3": [
+          [
+            "horse",
+            0.714
+          ],
+          [
+            "deer",
+            0.103
+          ],
+          [
+            "airplane",
+            0.066
+          ]
+        ]
+      }
+    ]
+  },
+  "optimisation_improved": {
+    "keras": {
+      "size_kb": 3906.4,
+      "accuracy": 0.858,
+      "latency_ms": 47.547
+    },
+    "tflite_fp32": {
+      "size_kb": 1266.7,
+      "accuracy": 0.858,
+      "latency_ms": 1.018
+    },
+    "tflite_fp16": {
+      "size_kb": 639.7,
+      "accuracy": 0.858,
+      "latency_ms": 1.017
+    },
+    "tflite_int8": {
+      "size_kb": 341.6,
+      "accuracy": 0.857,
+      "latency_ms": 1.306
+    }
+  },
+  "optimisation_resnet9": {
+    "tflite_fp32": {
+      "size_kb": 25675.0,
+      "accuracy": 0.945,
+      "latency_ms": 11.737
+    },
+    "tflite_fp16": {
+      "size_kb": 12844.7,
+      "accuracy": 0.945,
+      "latency_ms": 12.218
+    },
+    "tflite_int8": {
+      "size_kb": 6485.1,
+      "accuracy": 0.946,
+      "latency_ms": 11.968
+    }
+  }
+}
