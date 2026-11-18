@@ -48,17 +48,26 @@ Open `webots/worlds/cnn_object_test.wbt` and press run.
   2. CHOOSE – picks the nearest unvisited object.
   3. DRIVE – go-to-point with proportional heading control (position from the supervisor, heading from
      an InertialUnit in the turret slot) and bump-and-sidestep obstacle avoidance (front IR sensors).
-  4. DETECT – CIFAR objects: stops 0.55–0.7 m away, faces it, saves `captures/<object>.png` for the CNN.
+  4. DETECT – CIFAR objects: stops 0.55–0.7 m away, faces it, saves `captures/<object>.png` and
+     classifies the camera frame **live with the ResNet-9 CNN** (TFLite int8, about 10–40 ms): a square
+     region of interest above the floor, resized to 32×32, exactly as in the notebook.
      Blocks: stops 0.25 m away and identifies the colour by HSV thresholding on the lower-centre of
      the image (ignores sky and side objects).
   5. SUMMARY – printed and written to `captures/tour_log.txt`.
-  Example run: 5/5 frames, 4/4 colours correct, 79.5 s.
+  On-screen labels in the 3D view show the current target, each CNN or colour verdict and a running score.
+  Example run (`docs/webots_live_cnn_final.jpg`): CNN 3/5 on the robot camera (deer 66%, horse 83%,
+  airplane 92%; cat and dog missed: the simulation domain gap), colours 4/4, 101.7 s.
 * **Colour ranges (OpenCV scale):** red H 0–8 and 170–180, S ≥ 150 (the wooden floor is a faint red);
   yellow H 20–35; green H 40–85; blue H 100–130; S/V minimums in the code comments.
 * The same controller also contains a "search" mode (wander, detect, approach, recolour found objects)
   from the earlier colour-block world; it is selected with `controllerArgs "search"`.
-* Optional CNN on the robot: copy `cifar10_cnn_int8.tflite` from the notebook outputs into the
-  controller folder and install `tflite-runtime`; without it the controller runs without the CNN.
+* **CNN on the robot:** `resnet9_int8.tflite` (6.3 MB) sits next to the controller. It needs TensorFlow
+  (`pip install numpy pillow tensorflow==2.21.0`, or `tflite-runtime` where available) in the Python
+  that Webots uses; without it the controller runs colour-only and prints `[CNN] disabled`.
+* **Python for Webots:** if your default `python` lacks numpy or TensorFlow, add a `runtime.ini` in the
+  controller folder (not committed, because the path is machine-specific):
+  `[python]` / `COMMAND = C:\path\to\python.exe`.
+* **Camera window:** select the e-puck, then Overlays → Camera Devices → Show 'camera' overlay.
 
 ### Hardware notes (e-puck)
 

@@ -61,7 +61,10 @@ def log(message, log_file=None):
             f.write(message + "\n")
     except OSError:
         pass
-TFLITE_MODEL = Path(__file__).parent / "cifar10_cnn_int8.tflite"
+# CNN: prefer the ResNet-9 (93.1% on CIFAR-10, 6.3 MB int8); fall back to the small CNN
+TFLITE_MODEL = next((p for p in (Path(__file__).parent / "resnet9_int8.tflite",
+                                 Path(__file__).parent / "cifar10_cnn_int8.tflite") if p.exists()),
+                    Path(__file__).parent / "resnet9_int8.tflite")
 
 # HSV ranges, OpenCV-style scale: H 0-179, S 0-255, V 0-255.
 # Red wraps around hue 0, so it has two ranges.
@@ -186,7 +189,8 @@ class CnnWorker:
             try:
                 from tflite_runtime.interpreter import Interpreter
             except ImportError:
-                from tensorflow.lite import Interpreter
+                import tensorflow as tf                       # TF 2.21: tf.lite.Interpreter
+                Interpreter = tf.lite.Interpreter
             self.interp = Interpreter(model_path=str(model_path), num_threads=1)
             self.interp.allocate_tensors()
             self.inp = self.interp.get_input_details()[0]
@@ -195,6 +199,40 @@ class CnnWorker:
             print("[CNN] loaded", model_path.name)
         except Exception as err:  # model or runtime missing -> colour-only mode
             print("[CNN] disabled:", err)
+
+    def predict(self, frame):
+        """Classify one camera frame now: (class, probability, ms) or None.
+
+        Same preprocessing as the notebook: a square region of interest above the
+        floor in the centre of the frame (the robot parks with the object centred),
+        resized to 32x32 and scaled to 0-1, so the object fills the image like CIFAR.
+        """
+        if not self.enabled:
+            return None
+        h, w = frame.shape[:2]
+        side = 0.62 * h                                       # identical to robot_roi()
+        half = side / 2 / w                                   # in cnn/stage2_resnet9.py
+        x0, x1 = int((0.5 - half) * w), int((0.5 + half) * w)
+        y0, y1 = int(0.02 * h), int((0.02 + side / h) * h)
+        s = min(x1 - x0, y1 - y0)
+        x0, y0 = x0 + (x1 - x0 - s) // 2, y0 + (y1 - y0 - s) // 2
+        rgb = np.ascontiguousarray(frame[y0:y0 + s, x0:x0 + s, 2::-1])
+        try:
+            from PIL import Image
+            small = np.asarray(Image.fromarray(rgb).resize((32, 32), Image.BILINEAR))
+        except ImportError:                                   # no Pillow: nearest neighbour
+            idx = np.linspace(0, side - 1, 32).astype(int)
+            small = rgb[idx][:, idx]
+        img = small.astype(np.float32)[None] / 255.0
+        self.interp.set_tensor(self.inp["index"], img.astype(self.inp["dtype"]))
+        t0 = time.perf_counter()
+        self.interp.invoke()
+        ms = (time.perf_counter() - t0) * 1000
+        logits = self.interp.get_tensor(self.out["index"])[0].astype(np.float64)
+        probs = np.exp(logits - logits.max())
+        probs /= probs.sum()
+        k = int(np.argmax(probs))
+        return CIFAR10_CLASSES[k], float(probs[k]), ms
 
     def submit(self, frame):
         """Classify a frame asynchronously; ignored if the worker is busy."""
@@ -636,6 +674,21 @@ class ObjectTour:
         self.me = self.sup.getSelf()
         CAPTURE_DIR.mkdir(exist_ok=True)
         TOUR_LOG_FILE.write_text("", encoding="utf-8")
+        self.cnn = CnnWorker(TFLITE_MODEL)
+        model = TFLITE_MODEL.stem.replace("_int8", "").replace("cifar10_cnn", "small CNN")
+        self.show(0, f"e-puck tour  |  CNN: {model if self.cnn.enabled else 'off'}  |  colour: HSV",
+                  0.0, 0xFFFFFF)
+
+    # ---------------------------------------------- on-screen labels (3D view)
+    def show(self, line, text, y_offset=0.0, colour=0xFFFFFF):
+        """Write one HUD line in the top-left of the 3D view (Supervisor label)."""
+        # x = 0.36: to the right of the camera overlay, which sits in the top-left corner
+        self.sup.setLabel(line, text, 0.36, 0.01 + 0.045 * line + y_offset, 0.075,
+                          colour, 0.0, "Arial")
+
+    def show_score(self, cnn_hits, cnn_done, colour_hits, colour_done):
+        self.show(3, f"Score:  CNN {cnn_hits}/{cnn_done} objects   |   colour {colour_hits}/{colour_done} blocks",
+                  0.0, 0xB8E62E)
 
     # ---------------------------------------------- helpers
     def step(self):
@@ -713,7 +766,8 @@ class ObjectTour:
                               min_gap=TOUR_MIN_GAP, clearance=TOUR_START_CLEARANCE)
         self.step()
         remaining = [n for n in TOUR_OBJECTS if self.sup.getFromDef(n) is not None]
-        colour_results, cnn_frames = [], []
+        colour_results, cnn_frames, cnn_results = [], [], []
+        self.show_score(0, 0, 0, 0)
         while remaining:
             x, y, _ = self.pose()
             # nearest unvisited object
@@ -725,6 +779,7 @@ class ObjectTour:
             ox, oy = self.sup.getFromDef(name).getPosition()[:2]
             dist = math.hypot(ox - x, oy - y)
             tlog(f"[GO] {label} ({kind}) at ({ox:+.2f}, {oy:+.2f}), {dist:.2f} m away")
+            self.show(1, f"Driving to: {label}  ({dist:.2f} m)", 0.0, 0xFFFFFF)
             deadline = self.sup.getTime() + TOUR_TARGET_TIMEOUT_S
             # approach point: on the line from the robot to the object
             if dist > stop_dist:
@@ -744,6 +799,18 @@ class ObjectTour:
                 cnn_frames.append(label)
                 tlog(f"[DETECT] {label}: reached at t={self.sup.getTime():.1f}s, "
                     f"frame saved as {path.name} for the CNN")
+                pred = self.cnn.predict(img)
+                if pred:
+                    cls, p, ms = pred
+                    ok = cls == label
+                    cnn_results.append(ok)
+                    tlog(f"[CNN] {label}: predicted {cls} ({p:.0%}) in {ms:.1f} ms - "
+                         f"{'correct' if ok else 'WRONG'}")
+                    self.show(2, f"CNN sees: {cls} {p:.0%}  ({ms:.0f} ms)  ->  "
+                                 f"{'CORRECT' if ok else 'wrong, it is a ' + label}",
+                              0.0, 0x33E6C4 if ok else 0xE8573F)
+                    self.show_score(sum(cnn_results), len(cnn_results),
+                                    sum(r[3] for r in colour_results), len(colour_results))
             else:
                 colour, frac = identify_colour(img)
                 truth = TOUR_TRUE_COLOUR[name]
@@ -753,6 +820,11 @@ class ObjectTour:
                 tlog(f"[COLOUR] {label}: identified as {colour or 'unknown'} "
                     f"({frac:.0%} of frame) - actual {truth} - "
                     f"{'correct' if ok else 'WRONG'}")
+                self.show(2, f"Colour sees: {colour or 'unknown'} ({frac:.0%} of view)  ->  "
+                             f"{'CORRECT' if ok else 'wrong, it is ' + truth}",
+                          0.0, 0x33E6C4 if ok else 0xE8573F)
+                self.show_score(sum(cnn_results), len(cnn_results),
+                                sum(r[3] for r in colour_results), len(colour_results))
             # reverse a little so the next turn does not clip the object
             t_end = self.sup.getTime() + 0.6
             while self.step() and self.sup.getTime() < t_end:
@@ -762,6 +834,9 @@ class ObjectTour:
         correct = sum(r[3] for r in colour_results)
         tlog("============ TOUR SUMMARY ============")
         tlog(f"CNN frames saved: {len(cnn_frames)}/5 ({', '.join(cnn_frames)})")
+        if cnn_results:
+            tlog(f"CNN correct on the robot camera: {sum(cnn_results)}/{len(cnn_results)}")
+        self.show(1, f"Tour finished at t={self.sup.getTime():.1f} s", 0.0, 0xFFFFFF)
         tlog(f"Block colours correct: {correct}/{len(colour_results)}")
         for label, colour, truth, ok in colour_results:
             tlog(f"  {label}: {colour or 'unknown'} (actual {truth}) {'OK' if ok else 'X'}")
