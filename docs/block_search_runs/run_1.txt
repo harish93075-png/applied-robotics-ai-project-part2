@@ -1,0 +1,19 @@
+[RECOLOUR] blue block -> white
+[FOUND] blue block (blue) at t=58.5s (1/3)
+I see blue
+Encountered so far (1/3): blue  |  still to find: red, green
+[RECOLOUR] red block -> pink
+[FOUND] red block (red) at t=81.1s (2/3)
+I see red
+Encountered so far (2/3): blue, red  |  still to find: green
+[RECOLOUR] green block -> lavender
+[FOUND] green block (green) at t=98.3s (3/3)
+I see green
+Encountered so far (3/3): blue, red, green  |  all blocks found
+============ SEARCH SUMMARY ============
+Objects found: 3/3
+  blue block    blue   -> white   at   58.5s
+  red block     red    -> pink    at   81.1s
+  green block   green  -> lavender at   98.3s
+Vision cost: mean 6.29 ms/frame, max 12.09 ms (control step = 32 ms)
+========================================

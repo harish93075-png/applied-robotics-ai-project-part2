@@ -1,0 +1,88 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+
+WorldInfo {
+  info [
+    "Colour block search: a red, a blue and a green block (0.3 m x 0.3 m x 0.1 m) inside a walled 3 m x 3 m arena."
+    "Every run the epuck_controller (search mode) moves the blocks to random, non-overlapping positions, then"
+    "searches for them. On the first encounter of each block it displays 'I see red' / 'I see blue' / 'I see green'"
+    "and a summary of the blocks encountered so far."
+  ]
+  title "Colour Block Search"
+}
+Viewpoint {
+  orientation -0.32052304803843357 0.32052304803843357 0.8913640958397998 1.6856
+  position 0 -3.6 3.0
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 3 3
+}
+DEF BLOCK_RED Solid {
+  translation 0.8 -0.6 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        roughness 1
+        metalness 0
+      }
+      geometry DEF BLOCK_RED_BOX Box {
+        size 0.3 0.3 0.1
+      }
+    }
+  ]
+  name "red block"
+  boundingObject USE BLOCK_RED_BOX
+}
+DEF BLOCK_BLUE Solid {
+  translation -0.8 0.7 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0.2 1
+        roughness 1
+        metalness 0
+      }
+      geometry DEF BLOCK_BLUE_BOX Box {
+        size 0.3 0.3 0.1
+      }
+    }
+  ]
+  name "blue block"
+  boundingObject USE BLOCK_BLUE_BOX
+}
+DEF BLOCK_GREEN Solid {
+  translation 0.6 0.9 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0.8 0
+        roughness 1
+        metalness 0
+      }
+      geometry DEF BLOCK_GREEN_BOX Box {
+        size 0.3 0.3 0.1
+      }
+    }
+  ]
+  name "green block"
+  boundingObject USE BLOCK_GREEN_BOX
+}
+E-puck {
+  translation 0 0 0
+  controller "epuck_controller"
+  controllerArgs [
+    "search"
+  ]
+  supervisor TRUE
+  camera_width 320
+  camera_height 240
+}

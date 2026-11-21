@@ -6,15 +6,17 @@ camera_tour and block_randomiser).
 The mode is chosen automatically from the world (or from controllerArgs:
 "search" / "tour"):
 
-MODE "search"  (worlds/colour_block_search.wbt)
-    Shuffles the 4 blocks and 4 toys to random positions, then runs a state
-    machine:
+MODE "search"  (worlds/colour_block_search.wbt)  -- Part 1 brief
+    Moves the red, blue and green blocks (0.3 x 0.3 x 0.1 m) to random,
+    non-overlapping positions, then runs a state machine.  On the first
+    encounter of each block it displays "I see red" / "I see blue" /
+    "I see green", followed by a summary of the blocks encountered so far:
         SEARCH   -> wander + spin, scan camera for any target colour
         APPROACH -> lock on to one colour, keep it centred, drive to it
         RECORD   -> log it, save a camera frame, recolour it with a pale
                     "found" colour (a different one each time)
         AVOID    -> reverse and turn when the proximity sensors fire
-        DONE     -> every object found (or time limit) -> summary
+        DONE     -> every block found (or time limit) -> final summary
     Log: captures/run_log.txt.  Keys (click the 3D view): S = save frame,
     Q = summary + stop.
 
@@ -103,6 +105,8 @@ FOUND_COLOURS = [("white", [0.95, 0.95, 0.95]), ("pink", [1.0, 0.65, 0.8]),
                  ("peach", [1.0, 0.82, 0.68]), ("sky", [0.72, 0.86, 1.0]),
                  ("lemon", [1.0, 1.0, 0.72]), ("grey", [0.6, 0.6, 0.6])]
 
+LABEL_RGB = {"red": 0xFF4040, "green": 0x40E040, "blue": 0x4080FF, "yellow": 0xFFE040}
+
 CIFAR10_CLASSES = ["airplane", "automobile", "bird", "cat", "deer",
                    "dog", "frog", "horse", "ship", "truck"]
 
@@ -180,6 +184,13 @@ def detect_largest_blob(frame, ignore=()):
 # ------------------------------------------------------------------ CNN worker
 class CnnWorker:
     """Runs the optimised (TFLite int8) CIFAR-10 CNN off the control loop."""
+
+    @classmethod
+    def off(cls):
+        """A worker that never runs (used when there is nothing for the CNN to classify)."""
+        worker = cls.__new__(cls)
+        worker.enabled, worker.last_result, worker._busy = False, None, False
+        return worker
 
     def __init__(self, model_path):
         self.enabled = False
@@ -268,6 +279,9 @@ class ColourSearch:
     def __init__(self, robot):
         self.robot = robot
         self.dt = int(self.robot.getBasicTimeStep())
+        # search only for the target objects that exist in this world
+        self.targets = {d: v for d, v in TARGET_OBJECTS.items()
+                        if robot.getFromDef(d) is not None} or dict(TARGET_OBJECTS)
 
         self.left = self.robot.getDevice("left wheel motor")
         self.right = self.robot.getDevice("right wheel motor")
@@ -289,7 +303,9 @@ class ColourSearch:
 
         CAPTURE_DIR.mkdir(exist_ok=True)
         LOG_FILE.write_text("", encoding="utf-8")       # fresh log each run
-        self.cnn = CnnWorker(TFLITE_MODEL)
+        # the CNN only knows CIFAR-10 classes: plain blocks are identified by colour alone
+        self.use_cnn = any("block" not in label for label, _ in self.targets.values())
+        self.cnn = CnnWorker(TFLITE_MODEL) if self.use_cnn else CnnWorker.off()
 
         self.state = "SEARCH"
         self.state_timer = 0
@@ -297,12 +313,14 @@ class ColourSearch:
         self.target = None                 # colour we are approaching
         self.last_centre = 0.0             # where the target was last seen
         self.found = {}                    # object DEF -> record dict
-        self.ignore = set()                # colours to skip (fallback only)
+        # colours to skip: those with no target in this world, then each colour once all of
+        # its objects are found (so sky or floor tints of that hue are never chased again)
+        self.ignore = set(COLOUR_RANGES) - {c for _, c in self.targets.values()}
         self.vision_ms = []                # vision cost per processed frame
         self.search_turn = 1
         self.avoid_turn_steps = 40
         try:
-            randomise_objects(self.robot, list(TARGET_OBJECTS), half_size=0.15,
+            randomise_objects(self.robot, list(self.targets), half_size=0.15,
                               min_gap=0.45, clearance=0.4)
         except Exception as err:
             print("[LAYOUT] could not randomise:", err)
@@ -383,7 +401,7 @@ class ColourSearch:
             return None
         rx, ry = me.getPosition()[:2]
         best, best_d = None, MATCH_RADIUS
-        for def_name, (_, obj_colour) in TARGET_OBJECTS.items():
+        for def_name, (_, obj_colour) in self.targets.items():
             if obj_colour != colour or def_name in self.found:
                 continue
             node = self.robot.getFromDef(def_name)
@@ -460,7 +478,7 @@ class ColourSearch:
             self.change_state("AVOID")
             return
         key = def_name or f"{colour} object"
-        label = TARGET_OBJECTS[def_name][0] if def_name else key
+        label = self.targets[def_name][0] if def_name else key
         image = self.save_frame(label.replace(" ", "_"))
         self.found[key] = {"label": label, "colour": colour,
                            "time_s": round(self.robot.getTime(), 1),
@@ -471,11 +489,29 @@ class ColourSearch:
             log(f"[RECOLOUR] {label} -> {new_colour}")
         else:                       # could not recolour: stop chasing this colour
             self.ignore.add(colour)
+        if not any(c == colour and d not in self.found for d, (_, c) in self.targets.items()):
+            self.ignore.add(colour)  # every object of this colour found: stop looking for it
         log(f"[FOUND] {label} ({colour}) at t={self.robot.getTime():.1f}s "
-            f"({len(self.found)}/{len(TARGET_OBJECTS)})")
+            f"({len(self.found)}/{len(self.targets)})")
+        self.announce(colour)
         if frame is not None:
             self.cnn.submit(frame)
         self.change_state("AVOID")
+
+    def announce(self, colour):
+        """Respond to the first encounter of a block, then summarise all encounters so far."""
+        message = f"I see {colour}"
+        seen = [rec["colour"] for rec in self.found.values()]
+        missing = [c for _, c in self.targets.values() if c not in seen]
+        summary = (f"Encountered so far ({len(seen)}/{len(self.targets)}): {', '.join(seen)}"
+                   + (f"  |  still to find: {', '.join(missing)}" if missing else "  |  all blocks found"))
+        log(message)
+        log(summary)
+        try:                                   # on-screen labels in the 3D view
+            self.robot.setLabel(0, message, 0.02, 0.02, 0.14, LABEL_RGB.get(colour, 0xFFFFFF), 0, "Arial")
+            self.robot.setLabel(1, summary, 0.02, 0.11, 0.07, 0xFFFFFF, 0, "Arial")
+        except Exception as err:               # labels are cosmetic: keep searching
+            print("[LABEL] could not draw:", err)
 
     def avoid(self):
         if self.state_timer < 40:
@@ -484,18 +520,18 @@ class ColourSearch:
             self.set_speed(0.5 * MAX_SPEED, -0.5 * MAX_SPEED)    # turn away
         else:
             self.avoid_turn_steps = int(np.random.randint(30, 70))
-            done = len(self.found) >= len(TARGET_OBJECTS)
+            done = len(self.found) >= len(self.targets)
             self.change_state("DONE" if done else "SEARCH")
 
     def print_summary(self):
         log("============ SEARCH SUMMARY ============")
-        log(f"Objects found: {len(self.found)}/{len(TARGET_OBJECTS)}")
+        log(f"Objects found: {len(self.found)}/{len(self.targets)}")
         for rec in self.found.values():
             cnn = f", CNN: {rec['cnn']}" if rec["cnn"] else ""
             now = f" -> {rec['now']}" if rec["now"] else ""
             log(f"  {rec['label']:<13} {rec['colour']:<6}{now:<11} "
                   f"at {rec['time_s']:>6}s{cnn}")
-        missing = [lbl for d, (lbl, _) in TARGET_OBJECTS.items() if d not in self.found]
+        missing = [lbl for d, (lbl, _) in self.targets.items() if d not in self.found]
         if missing:
             log("  Not found: " + ", ".join(missing))
         if self.vision_ms:
@@ -554,6 +590,11 @@ class ColourSearch:
             elif self.state == "DONE":
                 self.set_speed(0, 0)
                 self.print_summary()
+                try:                                   # screenshot of the 3D view as evidence
+                    self.robot.step(self.dt)
+                    self.robot.exportImage(str(CAPTURE_DIR / "search_final.jpg"), 90)
+                except Exception as err:
+                    print("[SCREENSHOT] failed:", err)
                 break
 
 
