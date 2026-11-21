@@ -35,7 +35,8 @@ styles["Normal"].font.name = "Calibri"
 styles["Normal"].font.size = Pt(11)
 styles["Normal"].paragraph_format.space_after = Pt(6)
 styles["Normal"].paragraph_format.line_spacing = 1.15
-for name, size, colour in (("Heading 1", 16, ACCENT), ("Heading 2", 13, INK), ("Heading 3", 11.5, INK)):
+BLACK = RGBColor(0, 0, 0)
+for name, size, colour in (("Heading 1", 16, BLACK), ("Heading 2", 13, BLACK), ("Heading 3", 11.5, BLACK)):
     st = styles[name]
     st.font.name = "Calibri"
     st.font.size = Pt(size)
@@ -142,11 +143,7 @@ def table(rows, caption, widths=None, size=9.5, bold_last=False, key=None):
             run.font.size = Pt(size)
             if i == 0 or (bold_last and i == len(rows) - 1):
                 run.bold = True
-            if i == 0:
-                run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-                shade(cell, "0F766E")
-            elif i % 2 == 0:
-                shade(cell, "F1F5F4")
+            run.font.color.rgb = RGBColor(0, 0, 0)        # transparent table: no fill, black text
             if widths:
                 cell.width = Cm(widths[j])
             if i < len(rows) - 1:                    # keep the whole table on one page
@@ -225,7 +222,7 @@ t.alignment = WD_ALIGN_PARAGRAPH.CENTER
 t.paragraph_format.space_after = Pt(2)
 r = t.add_run("From CIFAR-10 to the e-puck Camera: Training, Optimising and Deploying a CNN Object Classifier "
               "with Autonomous Colour-Block Search in Webots")
-r.bold, r.font.size, r.font.color.rgb = True, Pt(15), ACCENT
+r.bold, r.font.size, r.font.color.rgb = True, Pt(15), BLACK
 para("Submitted 21 November 2026  ·  GitHub: github.com/harish93075-png/applied-robotics-ai-project-part2  ·  "
      "Trello: trello.com/b/xMSJpIeZ  ·  Webots package: 8757HIQT_HarishAshokkumar_Webots.zip",
      size=9, colour=MUTED, align=WD_ALIGN_PARAGRAPH.CENTER, after=6)
