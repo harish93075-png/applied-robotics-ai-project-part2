@@ -116,8 +116,10 @@ def shade(cell, hex_fill):
     tc_pr.append(shd)
 
 
-def table(rows, caption, widths=None, size=9.5, bold_last=False):
+def table(rows, caption, widths=None, size=9.5, bold_last=False, key=None):
     TAB[0] += 1
+    if key:
+        KEYS[key] = TAB[0]
     c = doc.add_paragraph()
     c.paragraph_format.keep_with_next = True
     r = c.add_run(f"Table {TAB[0]}: ")
@@ -344,10 +346,10 @@ table([["Component", "Version / setting", "Purpose"],
        ["Google Colab", "NVIDIA T4 GPU (L4 for the re-run), Python 3, TensorFlow/Keras", "Training and evaluation of all CNNs"],
        ["Local laptop", "Windows 11, Python 3.12, TensorFlow 2.21, numpy, Pillow", "Webots controller, TFLite inference"],
        ["Webots", "R2023b, e-puck PROTO, camera 320 × 240, basic time step 32 ms", "Simulation of the robot and arena"],
-       ["GitHub", "Private repository, branch main, 3 commits for Part 2", "Code management and version history"],
+       ["GitHub", "Private repository, branch main (history in Table «commits»)", "Code management and version history"],
        ["Trello", "Board with Backlog, To Do, In Progress, Review, Done", "Project management and milestones"]],
-      "Software and hardware used.", widths=[3.0, 7.0, 6.0])
-para("The controller's Python interpreter is set per project with a runtime.ini file, because Webots otherwise uses "
+      "Software and hardware used.", widths=[3.0, 7.0, 6.0], key="sw")
+para("Table «sw» lists the tools. The controller's Python interpreter is set per project with a runtime.ini file, because Webots otherwise uses "
      "the first Python on the PATH, which here lacked numpy. Fig. «trello» and Fig. «github» show how the work was managed.")
 figure("docs/trello_board.jpg", "Trello board used to manage Part 2: one card per task, moved from To Do to Done, "
                                 "with checklists and result comments.", 15, key="trello")
@@ -359,14 +361,14 @@ para("CIFAR-10 [1] contains 60,000 colour images of 32 × 32 pixels in ten class
      "deer, dog, frog, horse, ship, truck): 50,000 for training and 10,000 for testing. Pixel values were scaled from "
      "0–255 to 0–1. The baseline used the images as they are; the improved CNN and ResNet-9 used data augmentation "
      "during training only: random crops after 4-pixel reflect padding and random horizontal flips, and for ResNet-9 "
-     "also Cutout [8], which blanks a random 8 × 8 square so the network cannot rely on a single region.")
+     "also Cutout [8], which blanks a random 8 × 8 square so the network cannot rely on a single region. Fig. «samples» shows examples of each class.")
 
 figure("cnn/outputs/cifar10_samples.png", "Sample CIFAR-10 training images, one row per class. Each image is only "
                                           "32 × 32 pixels, which makes look-alike classes such as cat and dog hard.", 8.5,
        key="samples")
 doc.add_heading("3.3  CNN architectures", level=2)
 para("Three models were built in increasing order of capability, so that the effect of each design choice could be "
-     "measured (Fig. «arch»).")
+     "measured (Fig. «base», Fig. «imp» and Fig. «arch»).")
 bullets([("Baseline (Session 8 CNN_v3, 122,570 parameters): ", "Conv 32 → MaxPool → Conv 64 → MaxPool → Conv 64 → "
           "Flatten → Dense 64 → Dense 10. Trained for 10 epochs with SGD and, separately, with Adam."),
          ("Improved CNN (323,946 parameters): ", "three blocks of two 3 × 3 convolutions with batch normalisation and "
@@ -402,8 +404,8 @@ table([["Setting", "Baseline", "Improved CNN", "ResNet-9"],
        ["Loss", "cross-entropy", "cross-entropy", "cross-entropy, label smoothing 0.1"],
        ["Regularisation", "none", "BN, dropout, augmentation", "BN, L2 5e-4, crop/flip/Cutout"],
        ["Precision / time", "fp32 / 1.2 min", "fp32 / 10.1 min", "mixed fp16 / 5.8 min"]],
-      "Training settings (Colab T4 GPU).", widths=[3.4, 3.4, 4.3, 4.9])
-para("ResNet-9 follows Page's recipe [11]. The one-cycle schedule [9] warms the learning rate up to a high peak, which "
+      "Training settings (Colab T4 GPU).", widths=[3.4, 3.4, 4.3, 4.9], key="train")
+para("Table «train» compares the training settings. ResNet-9 follows Page's recipe [11]. The one-cycle schedule [9] warms the learning rate up to a high peak, which "
      "acts as a regulariser, then anneals it to zero; label smoothing [10] stops the network from becoming "
      "over-confident; mixed precision halves memory traffic on the GPU. The 10,000 test images were used as the "
      "validation set to plot training curves, and were never used to choose weights (no early stopping on ResNet-9). "
@@ -540,9 +542,9 @@ table([["Model", "Parameters", "Epochs", "Test accuracy", "Gain"],
        ["ResNet-9 + flip test-time augmentation", "6,577,610", "30", pct(R9["test_accuracy_tta"], 2), "+0.4 pts"],
        ["Published: ResNet-110 [5]", "1.7 M", "164", "93.57%", "benchmark"],
        ["Published: ResNet-9 recipe [11]", "6.5 M", "24", "94%", "benchmark"]],
-      "Test accuracy on the 10,000 CIFAR-10 test images, compared with published benchmarks.",
+      "Test accuracy on the 10,000 CIFAR-10 test images, compared with published benchmarks.", key="acc",
       widths=[6.2, 2.4, 1.6, 2.6, 3.2])
-para("Every change paid off. Adam beat plain SGD by 8.1 points in the same 10 epochs, regularisation and augmentation "
+para("Table «acc» and Fig. «accbar» show that every change paid off. Adam beat plain SGD by 8.1 points in the same 10 epochs, regularisation and augmentation "
      "added 14.8 points, and residual connections with the one-cycle recipe added a further 8.6, reaching 93.1%. "
      "This exceeds the Session 8 reference by 22 points and is within half a point of the 110-layer ResNet, with "
      "eight convolution layers instead of 109, and close to the 94% that Page reports for the same recipe [11]. "
@@ -551,7 +553,7 @@ para("Every change paid off. Adam beat plain SGD by 8.1 points in the same 10 ep
      "between training and test accuracy is small for a model of this size.")
 figure("cnn/outputs/resnet9_curves.png", "ResNet-9 training curves: accuracy (left) and loss (right) for the training "
                                          "images and the 10,000 validation images.", 16, key="curves")
-figure("cnn/outputs/accuracy_comparison.png", "Test accuracy of the four models.", 11.5)
+figure("cnn/outputs/accuracy_comparison.png", "Test accuracy of the four models.", 11.5, key="accbar")
 
 para("The intermediate models explain where the gains came from. With plain SGD the baseline was still improving "
      "slowly after 10 epochs, whereas Adam converged faster but began to overfit: its validation accuracy levelled off "
@@ -565,17 +567,17 @@ doc.add_heading("4.2  Error analysis", level=2)
 pc = R["per_class_accuracy_resnet9"]
 best_c = max(pc, key=pc.get)
 worst_c = min(pc, key=pc.get)
-para(f"Per-class accuracy ranges from {pct(pc[worst_c])} for {worst_c} to {pct(pc[best_c])} for {best_c}. The "
+para(f"Per-class accuracy (Table «pc») ranges from {pct(pc[worst_c])} for {worst_c} to {pct(pc[best_c])} for {best_c}. The "
      f"confusion matrix (Fig. «conf») shows that the most common error is cat predicted as dog ({R['most_confused_resnet9'][2]} "
      "of 1,000 cat images). The errors are between classes that look alike at 32 × 32 pixels: cat and dog, bird and "
      "airplane, automobile and truck. The improved CNN made the same kind of error more often (cat 65.2%, dog 72.8%), "
-     "so the residual network's gain is largest on the hardest classes.")
+     "so the residual network's gain is largest on the hardest classes (Fig. «confimp»).")
 figure("cnn/outputs/confusion_matrix.png", "Improved CNN confusion matrix, for comparison with the ResNet-9: the same "
                                            "cat/dog confusion is its largest error (107 dog images called cat, against "
                                            "84 cats called dog for the ResNet-9), and errors are more frequent overall.", 10, key="confimp")
 table([["Class"] + list(pc)[:5], ["Accuracy"] + [pct(pc[c]) for c in list(pc)[:5]],
        ["Class"] + list(pc)[5:], ["Accuracy"] + [pct(pc[c]) for c in list(pc)[5:]]],
-      "ResNet-9 accuracy per class.", widths=[2.2, 2.76, 2.76, 2.76, 2.76, 2.76])
+      "ResNet-9 accuracy per class.", widths=[2.2, 2.76, 2.76, 2.76, 2.76, 2.76], key="pc")
 figure("cnn/outputs/confusion_matrix_resnet9.png", "ResNet-9 confusion matrix on the test set. Most errors are "
                                                    "between cat and dog.", 10, key="conf")
 
@@ -587,9 +589,9 @@ rows = [["Image (truth)", "Whole photo", "Cropped to object", "Correct?"]]
 for img, tr in truth.items():
     rows.append([f"{img} ({tr})", f"{raw[img][0]} {pct(raw[img][1], 0)}", f"{crp[img][0]} {pct(crp[img][1], 0)}",
                  "yes" if crp[img][0] == tr else "no"])
-table(rows, "ResNet-9 predictions on my own photos, before and after cropping.", widths=[4.6, 3.8, 4.2, 3.4])
-para("All four photos were classified correctly after cropping, at 86–92% confidence (Fig. «own»). Without cropping the "
-     "car was called a ship (37.8%): the car sat low in a tall photo, and squashing the whole photo into 32 × 32 "
+table(rows, "ResNet-9 predictions on my own photos, before and after cropping.", widths=[4.6, 3.8, 4.2, 3.4], key="ownt")
+para("All four photos were classified correctly after cropping, at 86–92% confidence (Table «ownt», Fig. «own»). "
+     "Without cropping the car was called a ship (37.8%, Fig. «ownraw»): the car sat low in a tall photo, and squashing the whole photo into 32 × 32 "
      "distorted it. Matching the framing of the training data is therefore part of the model, not an optional extra.")
 figure("cnn/outputs/r9_own_raw.png", "ResNet-9 on the whole photos, before cropping: the car is called a ship.",
        15.5, key="ownraw")
@@ -606,9 +608,9 @@ for obj in ["airplane", "cat", "deer", "dog", "horse"]:
     rows.append([obj, f"{wr[img][0]} {pct(wr[img][1], 0)}", f"{wc[img][0]} {pct(wc[img][1], 0)}", live[obj]])
 rows.append(["Correct", "2 / 5", "3 / 5", "3 / 5"])
 table(rows, "ResNet-9 on e-puck camera frames. Colab used saved frames; the live column is the controller's own "
-            "verdict during a run (33–41 ms each).", widths=[2.6, 4.4, 4.0, 5.0], bold_last=True)
-para("The robot camera is much harder than my photos: 2 of 5 correct on the whole frame, 3 of 5 with the ROI and 3 of "
-     "5 live on the robot. The airplane, deer and horse are recognised; the cat and dog are not. Two causes stand "
+            "verdict during a run (33–41 ms each).", widths=[2.6, 4.4, 4.0, 5.0], bold_last=True, key="wt")
+para("The robot camera is much harder than my photos (Table «wt»): 2 of 5 correct on the whole frame (Fig. «wraw»), "
+     "3 of 5 with the ROI (Fig. «wcrop») and 3 of 5 live on the robot. The airplane, deer and horse are recognised; the cat and dog are not. Two causes stand "
      "out. First, the domain gap [24]: the Webots animals are low-polygon rendered models with flat textures, seen "
      "from 3 cm above the floor, whereas CIFAR-10 contains photographs. Second, the small animals fill little of the "
      "frame, so even the ROI includes floor and wall. Confidence on the correct answers (44–94%) is also lower than "
@@ -618,7 +620,7 @@ para("The robot camera is much harder than my photos: 2 of 5 correct on the whol
 figure("cnn/outputs/r9_webots_raw.png", "ResNet-9 on the whole e-puck frames: only 2 of 5 correct, with low "
                                         "confidence; floor and wall dominate the image.", 16, key="wraw")
 figure("cnn/outputs/r9_webots_crop.png", "e-puck camera frames from Webots and the ResNet-9 prediction on the "
-                                         "region of interest.", 16)
+                                         "region of interest.", 16, key="wcrop")
 figure("docs/webots_live_cnn_final.jpg", "The CNN running live in Webots: on-screen labels show each CNN verdict, "
                                          "the colour of each block and the running score; the camera overlay shows "
                                          "what the e-puck sees.", 10, key="live")
@@ -649,8 +651,8 @@ TAB_KEYS_RUNS = TAB[0]
 figure("docs/block_search_final.jpg", "End of a block-search run: on-screen response \"I see red\" and the summary "
                                       "\"Encountered so far (3/3): blue, green, red | all blocks found\". Found "
                                       "blocks are repainted pale so they are reported only once.", 12, key="search")
-figure("docs/block_search_frames.png", "e-puck camera frames saved at the first encounter of each block.", 15)
-para("Tour mode named the colour of all four blocks correctly in every run (4 of 4), including the yellow block "
+figure("docs/block_search_frames.png", "e-puck camera frames saved at the first encounter of each block.", 15, key="frames")
+para("Fig. «frames» shows what the robot saw at each first encounter. Tour mode named the colour of all four blocks correctly in every run (4 of 4), including the yellow block "
      "after its brightness floor was lowered. In the logged run with the live CNN the robot visited all nine objects "
      "in 101.7 s of simulated time (79.5 s without the CNN).")
 
@@ -668,8 +670,8 @@ for fmt in ("tflite_fp32", "tflite_fp16", "tflite_int8"):
                  f"{1000 / d['latency_ms']:.0f}", pct(d['accuracy'])])
 rows.append(["ResNet-9 int8, live in Webots", "6.3 MB", "33–41 ms", "24–30", "3 / 5 objects"])
 table(rows, "Size, speed and accuracy of each format. *Accuracy on the first 1,000 test images, one image at a time "
-            "on Colab's CPU with one thread.", widths=[5.2, 2.4, 2.8, 2.2, 3.4])
-para("Converting to TensorFlow Lite removed most of the cost: the same small CNN takes 47.5 ms per call in Keras, "
+            "on Colab's CPU with one thread.", widths=[5.2, 2.4, 2.8, 2.2, 3.4], key="opt")
+para("Table «opt» and Fig. «optfig» show the results. Converting to TensorFlow Lite removed most of the cost: the same small CNN takes 47.5 ms per call in Keras, "
      "mostly framework overhead, and 1.0–1.3 ms in TFLite, a 36–47× speed-up. int8 quantisation cut the small CNN "
      "from 1.24 MB to 342 KB and the ResNet-9 from 25.1 MB to 6.3 MB, four times smaller, with accuracy unchanged to "
      "within 0.1 points. On this x86 CPU int8 was not faster than fp32, because the kernels are tuned for floating "
@@ -681,7 +683,7 @@ para("The trade-off between the two models is clear: the small CNN is about 9× 
      "only while the robot is stopped. Colour vision with the pre-filter cost a mean of 5–7 ms per processed frame, "
      "well within the step. The optimisation therefore met its goal: the robot's operations and movements were not "
      "affected by the deep-learning model.")
-figure("cnn/outputs/optimisation.png", "Model size, time per image and accuracy for each TFLite format.", 16)
+figure("cnn/outputs/optimisation.png", "Model size, time per image and accuracy for each TFLite format.", 16, key="optfig")
 
 # ======================================================================= 5 discussion
 doc.add_heading("5  Discussion and Conclusions", level=1)
