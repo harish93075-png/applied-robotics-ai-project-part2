@@ -149,6 +149,11 @@ def table(rows, caption, widths=None, size=9.5, bold_last=False, key=None):
                 shade(cell, "F1F5F4")
             if widths:
                 cell.width = Cm(widths[j])
+            if i < len(rows) - 1:                    # keep the whole table on one page
+                p.paragraph_format.keep_with_next = True
+        tr_pr = t.rows[i]._tr.get_or_add_trPr()
+        cant = OxmlElement("w:cantSplit")
+        tr_pr.append(cant)
     doc.add_paragraph().paragraph_format.space_after = Pt(2)
     return TAB[0]
 
@@ -244,10 +249,20 @@ para("Robots that search an environment must recognise what they find, yet deep 
      "summary, finding all three blocks in every test run.", after=8)
 
 doc.add_heading("Contents", level=1)
-for line in ["1  Introduction", "2  Literature Review", "3  Methodology", "4  Evaluation of Results",
-             "5  Discussion and Conclusions", "6  Bibliography and References",
-             "Appendix A  Running the Webots package", "Appendix B  Key controller code"]:
-    para(line, after=1)
+toc = doc.add_paragraph()
+for tag, text in (("begin", None), (None, r'TOC \o "1-2" \h \z \u'), ("separate", None), (None, None), ("end", None)):
+    run = toc.add_run()
+    if tag:
+        fc = OxmlElement("w:fldChar")
+        fc.set(qn("w:fldCharType"), tag)
+        run._r.append(fc)
+    elif text:
+        instr = OxmlElement("w:instrText")
+        instr.set(qn("xml:space"), "preserve")
+        instr.text = text
+        run._r.append(instr)
+    else:
+        run.text = "Right-click and choose Update Field to show the contents."
 doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 # ======================================================================= 1 introduction
@@ -793,15 +808,19 @@ doc.add_heading("Appendix B  Key controller code", level=1)
 para("First-encounter response and running summary (ColourSearch.announce):", italic=True)
 code('''
 def announce(self, colour):
-    """Respond to the first encounter of a block, then summarise all encounters so far."""
+    """Respond to the first encounter of a block, then summarise
+    all encounters so far."""
     message = f"I see {colour}"
     seen = [rec["colour"] for rec in self.found.values()]
     missing = [c for _, c in self.targets.values() if c not in seen]
-    summary = (f"Encountered so far ({len(seen)}/{len(self.targets)}): {', '.join(seen)}"
-               + (f"  |  still to find: {', '.join(missing)}" if missing else "  |  all blocks found"))
+    summary = (f"Encountered so far ({len(seen)}/{len(self.targets)}): "
+               f"{', '.join(seen)}"
+               + (f"  |  still to find: {', '.join(missing)}"
+                  if missing else "  |  all blocks found"))
     log(message)
     log(summary)
-    self.robot.setLabel(0, message, 0.02, 0.02, 0.14, LABEL_RGB.get(colour, 0xFFFFFF), 0, "Arial")
+    colour_rgb = LABEL_RGB.get(colour, 0xFFFFFF)
+    self.robot.setLabel(0, message, 0.02, 0.02, 0.14, colour_rgb, 0, "Arial")
     self.robot.setLabel(1, summary, 0.02, 0.11, 0.07, 0xFFFFFF, 0, "Arial")
 ''')
 para("Vectorised HSV mask and the CNN worker that runs off the control loop:", italic=True)
