@@ -346,15 +346,16 @@ table([["Component", "Version / setting", "Purpose"],
        ["Google Colab", "NVIDIA T4 GPU (L4 for the re-run), Python 3, TensorFlow/Keras", "Training and evaluation of all CNNs"],
        ["Local laptop", "Windows 11, Python 3.12, TensorFlow 2.21, numpy, Pillow", "Webots controller, TFLite inference"],
        ["Webots", "R2023b, e-puck PROTO, camera 320 × 240, basic time step 32 ms", "Simulation of the robot and arena"],
-       ["GitHub", "Private repository, branch main (history in Table «commits»)", "Code management and version history"],
-       ["Trello", "Board with Backlog, To Do, In Progress, Review, Done", "Project management and milestones"]],
+       ["GitHub", "Public repository, branch main (history in Table «commits»)", "Code management and version history"],
+       ["Trello", "Board with Backlog, In Progress, Testing / Review, Done", "Project management and milestones"]],
       "Software and hardware used.", widths=[3.0, 7.0, 6.0], key="sw")
 para("Table «sw» lists the tools. The controller's Python interpreter is set per project with a runtime.ini file, because Webots otherwise uses "
      "the first Python on the PATH, which here lacked numpy. Fig. «trello» and Fig. «github» show how the work was managed.")
-figure("docs/trello_board.jpg", "Trello board used to manage Part 2: one card per task, moved from To Do to Done, "
+figure("docs/trello_board.jpg", "Trello board used to manage Part 2 (21 Nov): all 13 cards, one per task, completed and moved to Done, "
                                 "with checklists and result comments.", 15, key="trello")
-figure("docs/github_repo.jpg", "GitHub repository: notebook, training script, results, diagrams, Webots world and "
-                               "controller, with a README that documents set-up and results.", 15, key="github")
+figure("docs/github_repo.jpg", "Public GitHub repository (21 Nov, 8 commits on main): CNN notebooks and training "
+                               "script, results, diagrams, the final report and the Webots worlds and controller, with a "
+                               "README that documents set-up and results.", 15, key="github")
 
 doc.add_heading("3.2  Dataset and preprocessing", level=2)
 para("CIFAR-10 [1] contains 60,000 colour images of 32 × 32 pixels in ten classes (airplane, automobile, bird, cat, "
@@ -506,7 +507,7 @@ table([["Week", "Dates", "Milestone", "Evidence"],
        ["5", "19 – 21 Nov", "Block-search world to the Part 1 specification; tests; final report; package", "Run logs, this report"]],
       "Project timeline and milestones.", widths=[1.2, 2.8, 7.6, 4.4])
 TAB_KEYS_PLAN = TAB[0]
-para("Code was managed with Git and a private GitHub repository. Work was committed in small steps with descriptive "
+para("Code was managed with Git and a public GitHub repository. Work was committed in small steps with descriptive "
      "messages, so each result in this report can be traced to the commit that produced it (Table «commits»). "
      "Machine-specific files such as runtime.ini and large generated outputs are excluded with .gitignore, and the "
      "README documents set-up, the controller's modes, the HSV ranges and the hardware used.")
@@ -516,7 +517,9 @@ table([["Commit", "Date", "Change"],
        ["47f0ae3", "17 Nov", "Colour block search world"],
        ["9f8c8fc", "18 Nov", "Assignment 3 submission: notebook, CNN world, single controller"],
        ["d2f4e4b", "18 Nov", "ResNet-9 stage, CNN results and verified architecture diagrams"],
-       ["7b3b470", "18 Nov", "ResNet-9 running live on the e-puck camera in Webots"]],
+       ["7b3b470", "18 Nov", "ResNet-9 running live on the e-puck camera in Webots"],
+       ["edd6d22", "21 Nov", "Block-search world (Part 1 specification), final report, simple CNN notebook"],
+       ["daf7d3c", "21 Nov", "Final report: cover page and cross-references"]],
       "Commit history of the GitHub repository (branch main).", widths=[2.2, 2.0, 11.8])
 TAB_KEYS_COMMITS = TAB[0]
 para("Risks were identified early and most of them did occur, so the contingencies were used (Table «risks»).")
@@ -651,7 +654,7 @@ TAB_KEYS_RUNS = TAB[0]
 figure("docs/block_search_final.jpg", "End of a block-search run: on-screen response \"I see red\" and the summary "
                                       "\"Encountered so far (3/3): blue, green, red | all blocks found\". Found "
                                       "blocks are repainted pale so they are reported only once.", 12, key="search")
-figure("docs/block_search_frames.png", "e-puck camera frames saved at the first encounter of each block.", 15, key="frames")
+figure("docs/block_search_frames.png", "e-puck camera frames saved at the first encounter of each block (run 2, the run shown in Fig. «search»).", 15, key="frames")
 para("Fig. «frames» shows what the robot saw at each first encounter. Tour mode named the colour of all four blocks correctly in every run (4 of 4), including the yellow block "
      "after its brightness floor was lowered. In the logged run with the live CNN the robot visited all nine objects "
      "in 101.7 s of simulated time (79.5 s without the CNN).")
